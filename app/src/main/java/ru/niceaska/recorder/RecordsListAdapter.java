@@ -31,7 +31,7 @@ public class RecordsListAdapter extends RecyclerView.Adapter<RecordsListAdapter.
 
     @Override
     public void onBindViewHolder(@NonNull RecordsListHolder holder, int position) {
-        holder.bindView(fileList.get(position));
+        holder.bindView(fileList.get(position), position);
     }
 
     @Override
@@ -54,6 +54,10 @@ public class RecordsListAdapter extends RecyclerView.Adapter<RecordsListAdapter.
         return visibleFiles;
     }
 
+    public List<File> getFileList() {
+        return fileList;
+    }
+
     static class RecordsListHolder extends RecyclerView.ViewHolder {
 
         private TextView recordName;
@@ -65,12 +69,12 @@ public class RecordsListAdapter extends RecyclerView.Adapter<RecordsListAdapter.
             this.listener = listener;
         }
 
-        void bindView(final File file) {
+        void bindView(final File file, final int index) {
             recordName.setText(file.getName());
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    listener.onFileCliced(file);
+                    listener.onFileCliced(index);
                 }
             });
         }

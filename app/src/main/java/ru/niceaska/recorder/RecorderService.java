@@ -50,7 +50,8 @@ public class RecorderService extends Service {
     private RecorderService.LocalBinder  localBinder = new LocalBinder();
 
     private CountDownTimer countDownTimer;
-    private OnStopRecordingListener listener;
+    private OnRecordingListener listener;
+    private OnStopRecordingListener onStopRecordingListener;
     private long currentPastedTime = 0;
 
     class LocalBinder extends Binder {
@@ -77,20 +78,21 @@ public class RecorderService extends Service {
                 createChannel();
                 startForeground(NOTIFICATION_ID, createNotification(getFormat()));
             } else if (intent.getAction() != null && intent.getAction().equals(STOP_ACTION)) {
-
-
                 stopRecording();
-                boolean isRenamed = renameFile();
-                if (!isRenamed) {
-                    Log.d(TAG, "onStartCommand: can't rename file");
+                if (currentFile != null) {
+                    boolean isRenamed = renameFile();
+                    if (!isRenamed) {
+                        Log.d(TAG, "onStartCommand: can't rename file");
+                    }
                 }
-
+                if (onStopRecordingListener != null) {
+                    onStopRecordingListener.onRecordingStop();
+                }
                 stopForeground(true);
                 stopSelf();
                 return START_NOT_STICKY;
             } else if (intent.getAction() != null && intent.getAction().equals(PAUSE_ACTION)) {
                 pauseRecording();
-                notificationLayout = new RemoteViews(getPackageName(), R.layout.notification_layout);
                 notificationLayout.setViewVisibility(R.id.record, VISIBLE);
                 notificationLayout.setViewVisibility(R.id.pause, INVISIBLE);
                 updateNotification(getFormat());
@@ -285,11 +287,19 @@ public class RecorderService extends Service {
         return localBinder;
     }
 
-    public void setListener(OnStopRecordingListener listener) {
+    public void setListener(OnRecordingListener listener) {
         this.listener = listener;
     }
 
-    public interface OnStopRecordingListener {
+    public void setOnStopRecordingListener(OnStopRecordingListener onStopRecordingListener) {
+        this.onStopRecordingListener = onStopRecordingListener;
+    }
+
+    public interface OnRecordingListener {
         void onRecording(String time);
+    }
+
+    public interface OnStopRecordingListener {
+        void onRecordingStop();
     }
 }

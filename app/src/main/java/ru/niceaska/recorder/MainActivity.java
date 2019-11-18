@@ -35,9 +35,11 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_READ_CODE = 4;
     private static final int PERMISSION_RECORD_CODE = 6;
     private static final String TAG = "activityMain";
-    private final String CURRENT_FILE = "CurrentFile";
+    private static final String PATHNAMES_LIST = "pathnames";
+    private final String CURRENT_INDEX = "CurrentIndex";
 
     private boolean permissionToRecordAccepted = false;
+    private FileProvider fileProvider;
     private boolean isServiceBound;
     private RecorderService recorderService;
     private RecordsListAdapter recordsListAdapter;
@@ -51,10 +53,16 @@ public class MainActivity extends AppCompatActivity {
             recorderService = ((RecorderService.LocalBinder) service).getService();
             isServiceBound = true;
             if (recorderService != null) {
-                recorderService.setListener(new RecorderService.OnStopRecordingListener() {
+                recorderService.setListener(new RecorderService.OnRecordingListener() {
                     @Override
                     public void onRecording(String time) {
                         stopButton.setText(time);
+                    }
+                });
+                recorderService.setOnStopRecordingListener(new RecorderService.OnStopRecordingListener() {
+                    @Override
+                    public void onRecordingStop() {
+                        refreshUIonStop();
                     }
                 });
             }
@@ -90,20 +98,23 @@ public class MainActivity extends AppCompatActivity {
                     new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSION_RECORD_CODE);
 
         }
+        fileProvider = new FileProvider();
         recyclerView = findViewById(R.id.record_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
-        recyclerView.addItemDecoration(new DividerItemDecoration(this, DividerItemDecoration.VERTICAL));
-        recordsListAdapter = new RecordsListAdapter(getFileList(), new OnFileClickedListener() {
+        recordsListAdapter = new RecordsListAdapter(fileProvider.getFileList(), new OnFileClickedListener() {
             @Override
-            public void onFileCliced(File file) {
+            public void onFileCliced(int index) {
                 Intent intent = new Intent(MainActivity.this, PlayingActivity.class);
-                intent.putExtra(CURRENT_FILE, file);
+                intent.putExtra(CURRENT_INDEX, index);
+                intent.putStringArrayListExtra(PATHNAMES_LIST,
+                        (ArrayList<String>) fileProvider.getFilePaths(recordsListAdapter.getFileList()));
+                startActivity(intent);
             }
         });
         recyclerView.setAdapter(recordsListAdapter);
         recordButton = findViewById(R.id.new_record);
         stopButton = findViewById(R.id.stop_record);
-        //setListeners();
+        setListeners();
 
     }
 
@@ -114,8 +125,12 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, RecorderService.class);
                 intent.setAction(RECORD_ACTION);
                 startService(intent);
+                if (!isServiceBound) {
+                    bindService(intent, serviceConnection, BIND_NOT_FOREGROUND);
+                    Log.d(TAG, "onClick: service bound");
+                }
                 if (recorderService != null) {
-                    recorderService.setListener(new RecorderService.OnStopRecordingListener() {
+                    recorderService.setListener(new RecorderService.OnRecordingListener() {
                         @Override
                         public void onRecording(String time) {
                             stopButton.setText(time);
@@ -129,54 +144,29 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 stopRecordService();
-                recordsListAdapter.updateList(getFileList());
-                Log.d(TAG, "onClick: update records");
-                recordButton.setEnabled(true);
-                stopButton.setText("");
+                refreshUIonStop();
             }
         });
 
 
     }
 
+    private void refreshUIonStop() {
+        recordsListAdapter.updateList(fileProvider.getFileList());
+        recordButton.setEnabled(true);
+        stopButton.setText("");
+    }
+
     private void stopRecordService() {
         Intent intent = new Intent(MainActivity.this, RecorderService.class);
         intent.setAction(STOP_ACTION);
-        startService(intent);
         if (isServiceBound) {
             unbindService(serviceConnection);
             isServiceBound = false;
             recorderService = null;
         }
-    }
+        startService(intent);
 
-    public boolean isExternalStorageReadable() {
-        String state = Environment.getExternalStorageState();
-        return Environment.MEDIA_MOUNTED.equals(state) ||
-                Environment.MEDIA_MOUNTED_READ_ONLY.equals(state);
-    }
-
-    private List<File> getFileList() {
-        if (isExternalStorageReadable()) {
-            File listFiles = new File(Environment.getExternalStorageDirectory().getAbsolutePath() + RECORDER_DIR);
-            if (listFiles.isDirectory()) {
-                File[] files = listFiles.listFiles();
-                List<File> fileList = files == null ? new ArrayList<File>() : new ArrayList<File>(Arrays.asList(files));
-                return fileList;
-            }
-        }
-        return new ArrayList<>();
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        Intent intent = new Intent(MainActivity.this, RecorderService.class);
-        if (!isServiceBound) {
-            bindService(intent, serviceConnection, BIND_NOT_FOREGROUND);
-            Log.d(TAG, "onClick: service bound");
-        }
-        setListeners();
     }
 
     @Override

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="ru.niceaska.recorder">
 
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
@@ -13,11 +14,9 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/AppTheme">
-        <service
-            android:name=".PlayingService"
-            android:enabled="true"
-            android:exported="true"></service>
+        android:theme="@style/AppTheme"
+        tools:ignore="GoogleAppIndexingWarning">
+
 
         <activity android:name=".PlayingActivity" />
         <activity android:name=".MainActivity">
@@ -30,6 +29,11 @@
 
         <service   android:enabled="true"
             android:name=".RecorderService" />
+
+        <service
+            android:name=".PlayingService"
+            android:process=".externalProcess" />
+
     </application>
 
 </manifest>
