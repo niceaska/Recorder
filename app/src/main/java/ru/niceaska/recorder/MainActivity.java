@@ -22,6 +22,7 @@ import java.util.ArrayList;
 
 import static ru.niceaska.recorder.PalyerConstants.CURRENT_INDEX;
 import static ru.niceaska.recorder.PalyerConstants.PATHNAMES_LIST;
+import static ru.niceaska.recorder.PalyerConstants.PLAYING_NAME;
 import static ru.niceaska.recorder.RecorderConstants.RECORD_ACTION;
 import static ru.niceaska.recorder.RecorderConstants.STOP_ACTION;
 
@@ -89,6 +90,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onFileCliced(int index) {
                 Intent intent = new Intent(MainActivity.this, PlayingActivity.class);
+                intent.putExtra(PLAYING_NAME, recordsListAdapter.getFileList().get(index).getName());
                 intent.putExtra(CURRENT_INDEX, index);
                 intent.putStringArrayListExtra(PATHNAMES_LIST,
                         (ArrayList<String>) fileProvider.getFilePaths(recordsListAdapter.getFileList()));
@@ -146,29 +148,29 @@ public class MainActivity extends AppCompatActivity {
     private void refreshUIonStop() {
         recordsListAdapter.updateList(fileProvider.getFileList());
         recordButton.setEnabled(true);
-        stopButton.setText("");
+        stopButton.setText(getResources().getString(R.string.stop_record));
     }
 
     private void stopRecordService() {
         Intent intent = new Intent(MainActivity.this, RecorderService.class);
         intent.setAction(STOP_ACTION);
+        unbindRecordingService();
+        startService(intent);
+
+    }
+
+    private void unbindRecordingService() {
         if (isServiceBound) {
             unbindService(serviceConnection);
             isServiceBound = false;
             recorderService = null;
         }
-        startService(intent);
-
     }
 
     @Override
     protected void onStop() {
         super.onStop();
-        if (isServiceBound) {
-            unbindService(serviceConnection);
-            isServiceBound = false;
-            recorderService = null;
-        }
+        unbindRecordingService();
     }
 
     @Override

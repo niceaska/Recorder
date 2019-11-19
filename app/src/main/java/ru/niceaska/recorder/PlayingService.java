@@ -55,7 +55,6 @@ public class PlayingService extends Service implements MediaPlayer.OnPreparedLis
     private MediaPlayer mediaPlayer = null;
     private RemoteViews notificationLayout;
     private CountDownTimer countDownTimer;
-    private FileProvider fileProvider = new FileProvider();
     private int currentIndex;
     private List<String> fileList;
     private int duration;

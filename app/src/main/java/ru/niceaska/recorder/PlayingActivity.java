@@ -106,7 +106,7 @@ public class PlayingActivity extends AppCompatActivity implements View.OnClickLi
         if (savedInstanceState == null) {
             currentIndex = getIntent().getIntExtra(CURRENT_INDEX, 0);
             fileList = getIntent().getStringArrayListExtra(PATHNAMES_LIST);
-
+            name = getIntent().getStringExtra(PLAYING_NAME);
             Intent serviceIntent = new Intent(PlayingActivity.this, PlayingService.class);
             serviceIntent.setAction(PLAY_ACTION);
             serviceIntent.putStringArrayListExtra(PATHNAMES_LIST, (ArrayList<String>) fileList);
@@ -117,6 +117,7 @@ public class PlayingActivity extends AppCompatActivity implements View.OnClickLi
         progressBar = findViewById(R.id.play_progress);
         playingTime = findViewById(R.id.playing_time);
         recordName = findViewById(R.id.player_rec_name);
+        recordName.setText(name);
         findViewById(R.id.stop_button).setOnClickListener(this);
         findViewById(R.id.pause_button).setOnClickListener(this);
         findViewById(R.id.play_button).setOnClickListener(this);
