@@ -1,10 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="horizontal"
-    android:background="@android:color/holo_red_light"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content">
+    android:layout_height="wrap_content"
+    android:background="@android:color/holo_red_light"
+    android:orientation="horizontal">
 
     <TextView
         android:id="@+id/name"
@@ -12,26 +11,22 @@
         android:layout_height="wrap_content"
         android:layout_alignParentStart="true"
         android:layout_alignParentTop="true"
-        android:layout_marginStart="4dp"
-        android:layout_marginTop="2dp"
+        android:layout_marginStart="@dimen/name_margin_start"
+        android:layout_marginTop="@dimen/name_margin_top"
         android:gravity="center_horizontal"
         android:text="@string/audiorecorder"
-        android:textSize="20sp" />
-
+        android:textSize="@dimen/name_text_size" />
 
 
     <TextView
         android:id="@+id/recording_caption"
-        android:layout_marginTop="12dp"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/name"
         android:layout_alignParentStart="true"
-        android:gravity="center"
-
+        android:layout_marginTop="@dimen/record_caption_margin_top"
         android:layout_toStartOf="@+id/stop"
-        android:text="00:00:00" />
-
+        android:gravity="center" />
 
 
     <ImageButton
@@ -41,7 +36,7 @@
         android:layout_below="@+id/name"
         android:layout_toStartOf="@+id/record"
         android:background="@android:color/holo_orange_light"
-        android:padding="16dp"
+        android:padding="@dimen/button_padding"
         android:src="@drawable/ic_stop_black_24dp" />
 
     <ImageButton
@@ -51,7 +46,7 @@
         android:layout_below="@+id/name"
         android:layout_alignParentEnd="true"
         android:background="@android:color/holo_orange_light"
-        android:padding="16dp"
+        android:padding="@dimen/button_padding"
         android:src="@drawable/ic_fiber_manual_record_black_24dp" />
 
     <ImageButton
@@ -59,9 +54,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_below="@+id/name"
-        android:visibility="gone"
         android:layout_alignParentEnd="true"
         android:background="@android:color/holo_orange_light"
-        android:padding="16dp"
-        android:src="@drawable/ic_pause_black_24dp" />
+        android:padding="@dimen/button_padding"
+        android:src="@drawable/ic_pause_black_24dp"
+        android:visibility="gone" />
 </RelativeLayout>

@@ -17,7 +17,7 @@ public class RecordsListAdapter extends RecyclerView.Adapter<RecordsListAdapter.
     private List<File> fileList;
     private OnFileClickedListener listener;
 
-    public RecordsListAdapter(List<File> fileList, OnFileClickedListener listener) {
+    RecordsListAdapter(List<File> fileList, OnFileClickedListener listener) {
         this.fileList = hideFiles(fileList);
         this.listener = listener;
     }

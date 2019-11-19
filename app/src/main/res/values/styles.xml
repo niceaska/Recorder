@@ -8,4 +8,8 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
+    <style name="record_time_gravity">
+        <item name="android:layout_gravity">center</item>
+    </style>
+
 </resources>

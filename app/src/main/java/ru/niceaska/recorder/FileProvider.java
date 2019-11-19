@@ -36,12 +36,4 @@ public class FileProvider {
         return pathnames;
     }
 
-    public List<File> getFilesFromPathnames(List<String> pathNames) {
-        List<File> fileList = new ArrayList<>();
-        if (pathNames == null) return fileList;
-        for (String pathName : pathNames) {
-            fileList.add(new File(pathName));
-        }
-        return fileList;
-    }
 }

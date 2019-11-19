@@ -10,4 +10,10 @@ public class PalyerConstants {
     public static final int COUNT_PERIOD = 1000;
     public static final String CURRENT_INDEX = "CurrentIndex";
     public static final int MSG_START = 201;
+    static final int MSG_UPDATE = 2;
+    static final int MSG_SET_START_VALUES = 4;
+    static final int MSG_FINISH = 8;
+    static final String PLAYING_TIME = "playingTime";
+    static final String PLAYING_NAME = "playingName";
+
 }

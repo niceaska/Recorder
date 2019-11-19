@@ -7,4 +7,6 @@
     <string name="start_recording">Начать запись</string>
     <string name="stop_recording">Остановить запись</string>
     <string name="audio_player">Audio Player</string>
+    <string name="format">%02d:%02d</string>
+    <string name="stop_record">Стоп</string>
 </resources>

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="playing_caption_margin_top">12dp</dimen>
+    <dimen name="stop_playing_padding">16dp</dimen>
+    <dimen name="perv_playing">16dp</dimen>
+    <dimen name="button_padding">16dp</dimen>
+    <dimen name="name_margin_top">2dp</dimen>
+    <dimen name="name_margin_start">4dp</dimen>
+    <dimen name="name_text_size">20sp</dimen>
+    <dimen name="record_caption_margin_top">12dp</dimen>
+    <dimen name="player_rec_margin">8dp</dimen>
+    <dimen name="playing_time_margin">8dp</dimen>
+    <dimen name="play_progress_margin">16dp</dimen>
+    <dimen name="main_button_padding">8dp</dimen>
+    <dimen name="main_button_text_size">16sp</dimen>
+    <dimen name="record_icon_padding">4dp</dimen>
+    <dimen name="record_card_margin">8dp</dimen>
+    <dimen name="record_card_radius">4dp</dimen>
+</resources>

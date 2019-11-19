@@ -8,11 +8,13 @@ import android.app.Service;
 import android.content.Intent;
 import android.media.MediaPlayer;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
+import android.os.RemoteException;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -20,6 +22,7 @@ import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.List;
@@ -29,10 +32,15 @@ import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 import static ru.niceaska.recorder.PalyerConstants.COUNT_PERIOD;
 import static ru.niceaska.recorder.PalyerConstants.CURRENT_INDEX;
+import static ru.niceaska.recorder.PalyerConstants.MSG_FINISH;
+import static ru.niceaska.recorder.PalyerConstants.MSG_SET_START_VALUES;
 import static ru.niceaska.recorder.PalyerConstants.MSG_START;
+import static ru.niceaska.recorder.PalyerConstants.MSG_UPDATE;
 import static ru.niceaska.recorder.PalyerConstants.NEXT_ACTION;
 import static ru.niceaska.recorder.PalyerConstants.PATHNAMES_LIST;
 import static ru.niceaska.recorder.PalyerConstants.PAUSE_ACTION;
+import static ru.niceaska.recorder.PalyerConstants.PLAYING_NAME;
+import static ru.niceaska.recorder.PalyerConstants.PLAYING_TIME;
 import static ru.niceaska.recorder.PalyerConstants.PLAY_ACTION;
 import static ru.niceaska.recorder.PalyerConstants.PREV_ACTION;
 import static ru.niceaska.recorder.PalyerConstants.STOP_ACTION;
@@ -51,6 +59,7 @@ public class PlayingService extends Service implements MediaPlayer.OnPreparedLis
     private int currentIndex;
     private List<String> fileList;
     private int duration;
+    private String currRecordName;
 
     private Messenger messenger = new Messenger(new InternalHandler());
 
@@ -109,16 +118,20 @@ public class PlayingService extends Service implements MediaPlayer.OnPreparedLis
             }
         } else if (intent.getAction() != null && intent.getAction().equals(NEXT_ACTION)) {
             stopPlaying();
-            if (fileList != null) {
-                if (currentIndex < fileList.size() - 1) {
-                    currentIndex++;
-                    play(fileList.get(currentIndex));
-                    notificationLayout.setViewVisibility(R.id.play_record, INVISIBLE);
-                    notificationLayout.setViewVisibility(R.id.pause_playing, VISIBLE);
-                }
-            }
+            playNext();
         }
         return START_NOT_STICKY;
+    }
+
+    private void playNext() {
+        if (fileList != null) {
+            if (currentIndex < fileList.size() - 1) {
+                currentIndex++;
+                play(fileList.get(currentIndex));
+                notificationLayout.setViewVisibility(R.id.play_record, INVISIBLE);
+                notificationLayout.setViewVisibility(R.id.pause_playing, VISIBLE);
+            }
+        }
     }
 
     private void stopPlaying() {
@@ -134,12 +147,15 @@ public class PlayingService extends Service implements MediaPlayer.OnPreparedLis
 
     private void play(String fileName) {
         if (mediaPlayer != null) {
+
             if (mediaPlayer.isPlaying()) return;
-            mediaPlayer.start();
+            startMP(mediaPlayer, duration);
             return;
         }
 
         try (FileInputStream is = new FileInputStream(fileName);) {
+
+            currRecordName = new File(fileName).getName();
             mediaPlayer = new MediaPlayer();
             mediaPlayer.setDataSource(is.getFD());
         } catch (IOException e) {
@@ -181,26 +197,35 @@ public class PlayingService extends Service implements MediaPlayer.OnPreparedLis
         notificationLayout.setTextViewText(R.id.playing_caption, time);
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_play_arrow_black_24dp)
-                .setContentTitle("Audio Player")
-                .setContentText("Идет воспроизведение...")
                 .setCustomContentView(notificationLayout)
                 .setContentIntent(pendingActivityIntent)
                 .build();
     }
 
-    private void createCountDownTimer(long time) {
+    private void createCountDownTimer(final long time) {
         countDownTimer = new CountDownTimer(time, COUNT_PERIOD) {
             @Override
             public void onTick(long millisUntilFinished) {
                 duration = (int) millisUntilFinished;
-                updateNotification(getFormat((int) millisUntilFinished));
+
+                Bundle bundle = new Bundle();
+
+                Message message = Message.obtain(null, MSG_UPDATE);
+                message.arg1 = (mediaPlayer != null) ? mediaPlayer.getCurrentPosition() : 0;
+                String playingTime = getFormat((int) millisUntilFinished);
+                bundle.putString(PLAYING_TIME, playingTime);
+                message.setData(bundle);
+                sendMessage(message);
+                updateNotification(playingTime);
             }
 
             @Override
             public void onFinish() {
+                Message messageFinish = Message.obtain(null, MSG_FINISH);
+                sendMessage(messageFinish);
                 stopPlaying();
-                stopForeground(true);
-                stopSelf();
+                playNext();
+
             }
         };
         countDownTimer.start();
@@ -220,6 +245,7 @@ public class PlayingService extends Service implements MediaPlayer.OnPreparedLis
     private void pausePlaying() {
         if (mediaPlayer != null) {
             mediaPlayer.pause();
+            countDownTimer.cancel();
         }
     }
 
@@ -230,21 +256,44 @@ public class PlayingService extends Service implements MediaPlayer.OnPreparedLis
     }
 
     public String getFormat(int ms) {
-        return String.format(Locale.ENGLISH, "%02d:%02d",
+        return String.format(Locale.ENGLISH, getResources().getString(R.string.format),
                 ms / COUNT_PERIOD / 60, (ms / COUNT_PERIOD) % 60);
     }
 
     @Override
     public IBinder onBind(Intent intent) {
-        throw new UnsupportedOperationException("Not yet implemented");
+        return messenger.getBinder();
     }
 
     @Override
     public void onPrepared(MediaPlayer mp) {
         duration = mp.getDuration();
+        startMP(mp, duration);
+        Log.d(TAG, "onPrepared: " + duration);
+
+        Bundle bundle = new Bundle();
+        Message message = Message.obtain(null, MSG_SET_START_VALUES);
+        bundle.putString(PLAYING_NAME, currRecordName);
+
+        message.setData(bundle);
+        message.arg1 = duration;
+        sendMessage(message);
+        updateNotification(getFormat(duration));
+    }
+
+    private void startMP(MediaPlayer mp, int duration) {
         mp.start();
         createCountDownTimer(duration);
-        Log.d(TAG, "onPrepared: " + duration);
-        updateNotification(getFormat(duration));
+    }
+
+    private void sendMessage(Message message) {
+        if (playerActivityMessenger != null) {
+
+            try {
+                playerActivityMessenger.send(message);
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
+        }
     }
 }

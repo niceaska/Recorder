@@ -8,14 +8,26 @@
 
 
     <TextView
-        tools:text="kkkk"
+        android:id="@+id/player_rec_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_margin="8dp"
+        android:layout_margin="@dimen/player_rec_margin"
         android:textAppearance="@android:style/TextAppearance.Medium"
         app:layout_constraintBottom_toTopOf="@+id/imageView"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="kkkk" />
+
+    <TextView
+        android:id="@+id/playing_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/playing_time_margin"
+        app:layout_constraintBottom_toTopOf="@+id/player_rec_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        tools:text="kkkk" />
+
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
@@ -69,13 +81,13 @@
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
     <ProgressBar
+        android:id="@+id/play_progress"
         style="@android:style/Widget.Material.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:progress="160"
-        android:max="1200"
+        android:layout_margin="@dimen/play_progress_margin"
         app:layout_constraintEnd_toEndOf="@+id/skip_next"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/skip_perv" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

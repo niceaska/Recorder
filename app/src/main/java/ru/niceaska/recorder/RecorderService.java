@@ -30,6 +30,10 @@ import java.util.Locale;
 import static android.view.View.INVISIBLE;
 import static android.view.View.VISIBLE;
 import static ru.niceaska.recorder.RecorderConstants.CHANNEL_ID;
+import static ru.niceaska.recorder.RecorderConstants.DATE_FORMAT;
+import static ru.niceaska.recorder.RecorderConstants.DIR_SLASH;
+import static ru.niceaska.recorder.RecorderConstants.HIDDEN_DIR;
+import static ru.niceaska.recorder.RecorderConstants.MEDIA_FORMAT;
 import static ru.niceaska.recorder.RecorderConstants.NOTIFICATION_ID;
 import static ru.niceaska.recorder.RecorderConstants.PAUSE_ACTION;
 import static ru.niceaska.recorder.RecorderConstants.RECORDER_DIR;
@@ -42,6 +46,7 @@ public class RecorderService extends Service {
 
     private static final String TAG =  "RecordService";
     private static final long COUNT_PERIOD = 1000;
+
     private RemoteViews notificationLayout;
 
     private MediaRecorder recorder;
@@ -93,6 +98,9 @@ public class RecorderService extends Service {
                 return START_NOT_STICKY;
             } else if (intent.getAction() != null && intent.getAction().equals(PAUSE_ACTION)) {
                 pauseRecording();
+                if (onStopRecordingListener != null) {
+                    onStopRecordingListener.onRecordingStop();
+                }
                 notificationLayout.setViewVisibility(R.id.record, VISIBLE);
                 notificationLayout.setViewVisibility(R.id.pause, INVISIBLE);
                 updateNotification(getFormat());
@@ -125,8 +133,6 @@ public class RecorderService extends Service {
         notificationLayout.setTextViewText(R.id.recording_caption, time);
         return new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_fiber_manual_record_black_24dp)
-                .setContentTitle("Audio Recorder")
-                .setContentText("Идет запись...")
                 .setCustomContentView(notificationLayout)
                 .setContentIntent(pendingActivityIntent)
                 .build();
@@ -155,6 +161,7 @@ public class RecorderService extends Service {
             recorderDir = new File(dir.getAbsolutePath() + RECORDER_DIR);
             boolean isDone = recorderDir.mkdir();
             if (!isDone) {
+                Log.d(TAG, "createRecorderDirectory: can't create recorder dir");
             }
         }
     }
@@ -171,14 +178,14 @@ public class RecorderService extends Service {
         if (isExternalStorageReadable()) {
             StringBuilder stringBuilder = new StringBuilder();
             Date c = Calendar.getInstance().getTime();
-            SimpleDateFormat df = new SimpleDateFormat("yyyy.dd.MM HH:mm:ssZ", Locale.ENGLISH);
+            SimpleDateFormat df = new SimpleDateFormat(DATE_FORMAT, Locale.ENGLISH);
             currentFile = new File(
                     new String(stringBuilder
                             .append(recorderDir.getAbsolutePath())
-                            .append("/")
-                            .append(".")
+                            .append(DIR_SLASH)
+                            .append(HIDDEN_DIR)
                             .append(df.format(c))
-                            .append(".aac"))
+                            .append(MEDIA_FORMAT))
             );
             return currentFile;
         }
@@ -276,7 +283,7 @@ public class RecorderService extends Service {
     }
 
     public String getFormat() {
-        return String.format(Locale.ENGLISH, "%02d:%02d",
+        return String.format(Locale.ENGLISH, getResources().getString(R.string.format),
                 currentPastedTime / COUNT_PERIOD / 60, (currentPastedTime / COUNT_PERIOD) % 60);
     }
 

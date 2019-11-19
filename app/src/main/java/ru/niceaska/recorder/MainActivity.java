@@ -1,31 +1,27 @@
 package ru.niceaska.recorder;
 
-import androidx.annotation.NonNull;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
-import androidx.recyclerview.widget.DividerItemDecoration;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.Manifest;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
-import android.os.Environment;
 import android.os.IBinder;
 import android.util.Log;
 import android.view.View;
 import android.widget.TextView;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
-import static ru.niceaska.recorder.RecorderConstants.RECORDER_DIR;
+import java.util.ArrayList;
+
+import static ru.niceaska.recorder.PalyerConstants.CURRENT_INDEX;
+import static ru.niceaska.recorder.PalyerConstants.PATHNAMES_LIST;
 import static ru.niceaska.recorder.RecorderConstants.RECORD_ACTION;
 import static ru.niceaska.recorder.RecorderConstants.STOP_ACTION;
 
@@ -35,8 +31,6 @@ public class MainActivity extends AppCompatActivity {
     private static final int PERMISSION_READ_CODE = 4;
     private static final int PERMISSION_RECORD_CODE = 6;
     private static final String TAG = "activityMain";
-    private static final String PATHNAMES_LIST = "pathnames";
-    private final String CURRENT_INDEX = "CurrentIndex";
 
     private boolean permissionToRecordAccepted = false;
     private FileProvider fileProvider;
@@ -82,22 +76,12 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{android.Manifest.permission.READ_EXTERNAL_STORAGE}, PERMISSION_WRITE_CODE);
-        }
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{android.Manifest.permission.WRITE_EXTERNAL_STORAGE}, PERMISSION_READ_CODE);
-        }
-        if (ContextCompat.checkSelfPermission(this,
-                android.Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_DENIED) {
-            ActivityCompat.requestPermissions(MainActivity.this,
-                    new String[]{Manifest.permission.RECORD_AUDIO}, PERMISSION_RECORD_CODE);
+        requestPermission(new String[]{
+                Manifest.permission.READ_EXTERNAL_STORAGE,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.RECORD_AUDIO}, PERMISSION_WRITE_CODE);
 
-        }
+
         fileProvider = new FileProvider();
         recyclerView = findViewById(R.id.record_list);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
@@ -116,6 +100,14 @@ public class MainActivity extends AppCompatActivity {
         stopButton = findViewById(R.id.stop_record);
         setListeners();
 
+    }
+
+    private void requestPermission(String[] permission, int permissionWriteCode) {
+        if (ContextCompat.checkSelfPermission(this,
+                permission[0]) == PackageManager.PERMISSION_DENIED) {
+            ActivityCompat.requestPermissions(MainActivity.this,
+                    permission, permissionWriteCode);
+        }
     }
 
     private void setListeners() {
@@ -194,11 +186,14 @@ public class MainActivity extends AppCompatActivity {
             case PERMISSION_READ_CODE:
             case PERMISSION_RECORD_CODE:
             case PERMISSION_WRITE_CODE:
-                permissionToRecordAccepted  = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                if (!permissionToRecordAccepted ) finish();
+                if (grantResults.length > 0) {
+                    permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
+                    if (!permissionToRecordAccepted) finish();
+                }
                 break;
         }
 
     }
+
 
 }
