@@ -129,6 +129,9 @@ public class PlayingService extends Service implements MediaPlayer.OnPreparedLis
                 play(fileList.get(currentIndex));
                 notificationLayout.setViewVisibility(R.id.play_record, INVISIBLE);
                 notificationLayout.setViewVisibility(R.id.pause_playing, VISIBLE);
+            } else {
+                stopForeground(true);
+                stopSelf();
             }
         }
     }

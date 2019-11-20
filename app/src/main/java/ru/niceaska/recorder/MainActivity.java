@@ -28,12 +28,9 @@ import static ru.niceaska.recorder.RecorderConstants.STOP_ACTION;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final int PERMISSION_WRITE_CODE =  2;
-    private static final int PERMISSION_READ_CODE = 4;
-    private static final int PERMISSION_RECORD_CODE = 6;
+    private static final int PERMISSION_CODE = 2;
     private static final String TAG = "activityMain";
 
-    private boolean permissionToRecordAccepted = false;
     private FileProvider fileProvider;
     private boolean isServiceBound;
     private RecorderService recorderService;
@@ -80,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
         requestPermission(new String[]{
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.WRITE_EXTERNAL_STORAGE,
-                Manifest.permission.RECORD_AUDIO}, PERMISSION_WRITE_CODE);
+                Manifest.permission.RECORD_AUDIO}, PERMISSION_CODE);
 
 
         fileProvider = new FileProvider();
@@ -185,12 +182,12 @@ public class MainActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         switch (requestCode){
-            case PERMISSION_READ_CODE:
-            case PERMISSION_RECORD_CODE:
-            case PERMISSION_WRITE_CODE:
+            case PERMISSION_CODE:
                 if (grantResults.length > 0) {
-                    permissionToRecordAccepted = grantResults[0] == PackageManager.PERMISSION_GRANTED;
-                    if (!permissionToRecordAccepted) finish();
+                    for (int res : grantResults) {
+                        boolean permissionToRecordAccepted = res == PackageManager.PERMISSION_GRANTED;
+                        if (!permissionToRecordAccepted) finish();
+                    }
                 }
                 break;
         }
